@@ -1,13 +1,14 @@
 # DataAberation.py
 # Author: Stefan Mocko <https://github.com/>
-# Licensed
+# Licensed Apache License Version 2.0
 
 import os
 import glob
 import numpy as np
 import cv2
-import ImageOperations
+import ImageOperations as ImOp
 import matplotlib.pyplot as plt
+import sys
 from math import pi
 from skimage.color import rgb2gray
 from PIL import Image, ImageOps
@@ -33,37 +34,61 @@ class AberrationProcess(object):
         self.image_paths = glob.glob(self.data_path + "/*." + self.img_type)
         self.label_paths = glob.glob(self.label_path + "/*." + self.img_type)
 
-    def process_data(self):
-        for img_name in self.image_paths:
-            mid_name = img_name[img_name.rindex("\\")+1:]
-            actual_image = cv2.imread(self.data_path + "/" + mid_name, 0)
-            actual_label = cv2.imread(self.label_path + "/" + mid_name, 0)
+    def load_image_and_label(self, mid_name):
+        actual_image = Image.open(self.data_path + "/" + mid_name)
+        actual_label = Image.open(self.label_path + "/" + mid_name)
 
+        # actual_image = cv2.imread(self.data_path + "/" + mid_name, 0)
+        # actual_label = cv2.imread(self.label_path + "/" + mid_name, 0)
+        return [actual_image, actual_label]
+
+    def write_image_and_label(self, processed_data, mid_name, oper):
+        operation_list = '-'.join(oper)
+
+        image = processed_data[0]
+        label = processed_data[1]
+        image.save(self.output_path + "/" + operation_list + mid_name)
+        label.save(self.output_label_path + "/" + operation_list + mid_name)
+
+        #cv2.imwrite(self.output_path + "/" + "aberated_" + mid_name, processed_data[0])
+        #cv2.imwrite(self.output_label_path + "/" + "aberated_" + mid_name, processed_data[1])
+
+    def process_data(self):
+        i = 0
+        for img_name in self.image_paths:
+            mid_name = img_name[img_name.rindex("\\") + 1:]
+            operations = []
+
+            image_data = self.load_image_and_label(mid_name)
             # perform operations - call functions
+            data, oper = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
+
+            # temp_processed_data = ImageOperations.create_aberation_data(actual_image)
 
             # write output
-            cv2.imwrite(self.output_path + "/" + "aberated_" + mid_name, actual_image)
-            cv2.imwrite(self.output_label_path + "/" + "aberated_" + mid_name, actual_label)
+            self.write_image_and_label(data, mid_name, oper)
+            i = i+1
+            sys.stdout.write('\r[{0}{1}] {2}'.format('#' * (i / 10), ' ' * (10 - i / 10), i))
 
     def process_one(self):
         img_name = self.image_paths[0]
         mid_name = img_name[img_name.rindex("\\")+1:]
+        operations = []
 
-        actual_image = cv2.imread(self.data_path + "/" + mid_name, 0)
-        actual_label = cv2.imread(self.label_path + "/" + mid_name, 0)
+        image_data = self.load_image_and_label(mid_name)
         # perform operations - call functions
+        data, oper = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
 
-        p1image = ImageOperations.create_aberation_data(actual_image)
+        # temp_processed_data = ImageOperations.create_aberation_data(actual_image)
 
         # write output
-        cv2.imwrite(self.output_path + "/" + "aberated_" + mid_name, p1image)
-        cv2.imwrite(self.output_label_path + "/" + "aberated_" + mid_name, actual_label)
+        self.write_image_and_label(data, mid_name, oper)
 
 
 if __name__ == "__main__":
     aberration_data = AberrationProcess()
     aberration_data.find_data_paths()
-    # aberration_data.process_data()
-    aberration_data.process_one()
+    aberration_data.process_data()
+    #aberration_data.process_one()
 
-    print("Done")
+    print("\n Aberration Done")

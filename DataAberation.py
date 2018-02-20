@@ -56,12 +56,14 @@ class AberrationProcess(object):
     def process_data(self):
         i = 0
         for img_name in self.image_paths:
+            print img_name
             mid_name = img_name[img_name.rindex("\\") + 1:]
             operations = []
 
             image_data = self.load_image_and_label(mid_name)
             # perform operations - call functions
-            data, oper = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
+            data1, oper1 = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
+            data, oper = ImOp.Invert().perform_operation(data1, oper1)
 
             # temp_processed_data = ImageOperations.create_aberation_data(actual_image)
 
@@ -77,7 +79,8 @@ class AberrationProcess(object):
 
         image_data = self.load_image_and_label(mid_name)
         # perform operations - call functions
-        data, oper = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
+        data1, oper1 = ImOp.RotateRange(25, 25).perform_operation(image_data, operations)
+        data, oper = ImOp.Invert().perform_operation(data1, oper1)
 
         # temp_processed_data = ImageOperations.create_aberation_data(actual_image)
 

@@ -10,19 +10,39 @@ import matplotlib.pyplot as plt
 import random
 import math
 from skimage.color import rgb2gray
-from PIL import Image
+from PIL import Image, ImageOps
 
 
 class ImageOperations(object):
     def __init__(self):
         pass
 
-    def perform_operation(self, image, operations):
+    def perform_operation(self, image_list, operations):
         """
         Perform the operation on the image. Each operation must at least
         have this function.
         """
         raise RuntimeError("Illegal call to base class.")
+
+
+class Invert(ImageOperations):
+    def __init__(self):
+        self.operation = "NoInvert"
+
+    def perform_operation(self, image_list, operations):
+        decision = random.randint(0, 1)
+        if decision == 0:
+            operations.append(self.operation)
+            return image_list, operations
+        elif decision == 1:
+            try:
+                out_list = [ImageOps.invert(image_list[0]), image_list[1]]
+                operations.append("Invert")
+                return out_list, operations
+            except IOError:
+                print("This file cannot be inverted")
+                operations.append(self.operation)
+                return image_list, operations
 
 
 class RotateRange(ImageOperations):
